@@ -31,10 +31,13 @@ object Run {
     val viewerRating: String = fields(5)
     val listed_in: Array[String] = java.net.URLDecoder.decode(fields(6), "UTF-8").split(",")
     val description: String = fields(7)
-    val availableCountries: Array[String] =
-      java.net.URLDecoder.decode(fields(8), "UTF-8")
-        .split(",")
-        .map(c => c.split(":")(1).replaceAll("\"", ""))
+    val availableCountries: Array[String] = {
+      if (fields(8) != "") {
+        java.net.URLDecoder.decode(fields(8), "UTF-8")
+        .split(", ")
+        .map(c => c.split(": ")(1).replaceAll("\"", ""))}
+      else {Array("")}
+    }
   }
 
   def main(args: Array[String]): Unit = {
