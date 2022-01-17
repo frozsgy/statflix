@@ -50,12 +50,10 @@ object Run {
     val unogsData = spark.read
       .format("json")
       .option("multiline","true")
-      .json("data/unogs-data-cropped.json")
+      .json("data/out-cleaned-string.json")
 
     val titlesWithCountries = unogsData.select("title", "clist")
     val joined = kaggleData.join(titlesWithCountries,"title")
-    //joined.show(10)
-    //println(joined.count())  // -> 5335
 
     val shows = joined.rdd.map(row => {
       val title = row.getString(0)
@@ -72,24 +70,31 @@ object Run {
 
     // ARRAY OF ALL SHOW OBJECTS
     val allShows = shows.map(show => Show(show))
-    //allShows.take(10).foreach(s => println(s.availableCountries.mkString("(", ", ", ")")))
+
+    // MAP OF SHOW TITLE -> SHOW OBJECT
+    val showMap = allShows.map(show => (show.title, show)).toMap
 
     val countriesShowPairs = allShows.toSeq
-      .map(s => (s.availableCountries, s.title)).flatMap(p => p._1.map(c => (c, p._2)))
+      .map(s => (s.availableCountries, s.title))
+      .flatMap(p => p._1.map(c => (c, p._2)))
 
     val showsOfCountries = countriesShowPairs
       .groupBy(p => p._1)
       .mapValues(l => l.map(p => p._2))
       .mapValues(l => l.mkString("(", ", ", ")"))
       .toArray
-    //showsOfCountries.take(10).foreach(println)
 
     // ARRAY OF ALL COUNTRY OBJECTS
     val allCountries = showsOfCountries.map(country => Country(Array(country._1,country._2)))
-    //allCountries.take(10).foreach(s => println(s.country + ":" + s.availableShows.mkString("(", ", ", ")")))
 
+    // MAP OF COUNTRY NAME -> COUNTRY OBJECT
+    val countryMap = allCountries.map(country => (country.country, country)).toMap
 
-
+    // MAP OF COUNTRY OBJECT -> [SHOW OBJECT]
+    val countryShowMap = allCountries
+      .map(c => (c, c.availableShows)).toMap
+      .mapValues(a => a.map(s => showMap.getOrElse(s, null)))
+      .mapValues(s => s.filter(s => s != null))
 
   }
 
