@@ -10,7 +10,7 @@ object Run {
 
   case class Country(fields: Array[String]) {
     val country: String = fields(0)
-    val availableShows: Array[String] = java.net.URLDecoder.decode(fields(1), "UTF-8").split(",")
+    val availableShows: Array[String] = java.net.URLDecoder.decode(fields(1), "UTF-8").split("; ")
   }
 
   case class Show(fields: Array[String]) {
@@ -58,6 +58,19 @@ object Run {
     val titlesWithCountries = unogsData.select("title", "clist")
     val joined = kaggleData.join(titlesWithCountries,"title")
 
+    /*
+    val fancyPrintForPresentation = joined
+      .drop("show_id")
+      .drop("date_added")
+      .drop("viewer_rating")
+      .drop("release_year")
+      .drop("duration")
+      .drop("viewer_rating")
+      .drop("description")
+      .drop("produced_by")
+    fancyPrintForPresentation.show()
+    */
+
     val shows = joined.rdd.map(row => {
       val title = row.getString(0)
       val showType = row.getString(2)
@@ -76,6 +89,7 @@ object Run {
 
     // MAP OF SHOW TITLE -> SHOW OBJECT
     val showMap = allShows.map(show => (show.title, show)).toMap
+    println("shows in the map: ", showMap.size)
 
     val countriesShowPairs = allShows.toSeq
       .map(s => (s.availableCountries, s.title))
@@ -84,7 +98,7 @@ object Run {
     val showsOfCountries = countriesShowPairs
       .groupBy(p => p._1)
       .mapValues(l => l.map(p => p._2))
-      .mapValues(l => l.mkString("(", ", ", ")"))
+      .mapValues(l => l.mkString("; "))
       .toArray
 
     // ARRAY OF ALL COUNTRY OBJECTS
@@ -92,13 +106,14 @@ object Run {
 
     // MAP OF COUNTRY NAME -> COUNTRY OBJECT
     val countryMap = allCountries.map(country => (country.country, country)).toMap
+    println("countries in the map: ", countryMap.size)
 
     // MAP OF COUNTRY OBJECT -> [SHOW OBJECT]
     val countryShowMap = allCountries
       .map(c => (c, c.availableShows)).toMap
       .mapValues(a => a.map(s => showMap.getOrElse(s, null)))
       .mapValues(s => s.filter(s => s != null))
-
+    
   }
 
 }
