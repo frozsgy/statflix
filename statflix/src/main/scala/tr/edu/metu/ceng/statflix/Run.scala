@@ -54,8 +54,8 @@ object Run {
 
     val titlesWithCountries = unogsData.select("title", "clist")
     val joined = kaggleData.join(titlesWithCountries,"title")
-    joined.show(10)
-    // println(joined.count()) -> 5338
+    //joined.show(10)
+    //println(joined.count())  // -> 5335
 
     val shows = joined.rdd.map(row => {
       val title = row.getString(0)
@@ -70,24 +70,24 @@ object Run {
       Array(title, showType, directors, cast, producingCountries, viewerRating, listed_in, description, availableCountries)
     }).collect()
 
+    // ARRAY OF ALL SHOW OBJECTS
     val allShows = shows.map(show => Show(show))
-    // allShows.take(10).foreach(s => println(s.availableCountries.mkString("(", ", ", ")")))
+    //allShows.take(10).foreach(s => println(s.availableCountries.mkString("(", ", ", ")")))
 
     val countriesShowPairs = allShows.toSeq
-      .map(s => (s.availableCountries,s.title))
-      .map(p => p._1.map(c => (c, p._2)))
-      .flatten
+      .map(s => (s.availableCountries, s.title)).flatMap(p => p._1.map(c => (c, p._2)))
 
     val showsOfCountries = countriesShowPairs
       .groupBy(p => p._1)
       .mapValues(l => l.map(p => p._2))
       .mapValues(l => l.mkString("(", ", ", ")"))
       .toArray
-
     //showsOfCountries.take(10).foreach(println)
 
+    // ARRAY OF ALL COUNTRY OBJECTS
     val allCountries = showsOfCountries.map(country => Country(Array(country._1,country._2)))
-    allCountries.take(10).foreach(s => println(s.country + ":" + s.availableShows.mkString("(", ", ", ")")))
+    //allCountries.take(10).foreach(s => println(s.country + ":" + s.availableShows.mkString("(", ", ", ")")))
+
 
   }
 
