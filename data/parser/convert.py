@@ -11,7 +11,7 @@ def convert(data: dict) -> list:
     r = []
     for datum in data:
         countries_map = datum['countries']
-        datum["clist"] = dict([(x['cc'], x['country'].strip()) for x in countries_map])
+        datum["clist"] = json.dumps(dict([(x['cc'], x['country'].strip()) for x in countries_map]))[1:-1]
         datum.pop('countries', None)
         r.append(datum)
     return r
@@ -19,7 +19,7 @@ def convert(data: dict) -> list:
 
 def write_to_file(json_file: list):
     json_object = json.dumps(json_file, indent=4)
-    with open("out-cleaned.json", "w") as outfile:
+    with open("out-cleaned-string.json", "w") as outfile:
         outfile.write(json_object)
 
 
