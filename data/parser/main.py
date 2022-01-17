@@ -1,6 +1,7 @@
 import json
 from urllib.request import urlopen
 
+
 def load_json():
     with open("../unogs-data.json") as f:
         data = json.load(f)
