@@ -50,7 +50,7 @@ object Run {
     val unogsData = spark.read
       .format("json")
       .option("multiline","true")
-      .json("data/unogs-data-formatted.json")
+      .json("data/unogs-data-cropped.json")
 
     val titlesWithCountries = unogsData.select("title", "clist")
     val joined = kaggleData.join(titlesWithCountries,"title")
@@ -87,6 +87,8 @@ object Run {
     // ARRAY OF ALL COUNTRY OBJECTS
     val allCountries = showsOfCountries.map(country => Country(Array(country._1,country._2)))
     //allCountries.take(10).foreach(s => println(s.country + ":" + s.availableShows.mkString("(", ", ", ")")))
+
+
 
 
   }
