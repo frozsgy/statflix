@@ -29,7 +29,7 @@ object Run {
       else {Array("")}
     }
     val viewerRating: String = fields(5)
-    val listed_in: Array[String] = java.net.URLDecoder.decode(fields(6), "UTF-8").split(",")
+    val listed_in: Array[String] = java.net.URLDecoder.decode(fields(6), "UTF-8").split(", ")
     val description: String = fields(7)
     val availableCountries: Array[String] = {
       if (fields(8) != "") {
@@ -89,7 +89,6 @@ object Run {
 
     // MAP OF SHOW TITLE -> SHOW OBJECT
     val showMap = allShows.map(show => (show.title, show)).toMap
-    println("shows in the map: ", showMap.size)
 
     val countriesShowPairs = allShows.toSeq
       .map(s => (s.availableCountries, s.title))
@@ -102,18 +101,98 @@ object Run {
       .toArray
 
     // ARRAY OF ALL COUNTRY OBJECTS
-    val allCountries = showsOfCountries.map(country => Country(Array(country._1,country._2)))
+    val allCountries = showsOfCountries
+      .map(country => Country(Array(country._1,country._2)))
+      .filter(c => c.country != "")
 
     // MAP OF COUNTRY NAME -> COUNTRY OBJECT
     val countryMap = allCountries.map(country => (country.country, country)).toMap
-    println("countries in the map: ", countryMap.size)
 
-    // MAP OF COUNTRY OBJECT -> [SHOW OBJECT]
+    // MAP OF COUNTRY OBJECT -> [SHOW OBJECT] FOR AVAILABLE COUNTRIES
     val countryShowMap = allCountries
       .map(c => (c, c.availableShows)).toMap
       .mapValues(a => a.map(s => showMap.getOrElse(s, null)))
       .mapValues(s => s.filter(s => s != null))
-    
+    // countryShowMap.foreach(cs => println(cs._1.country, cs._2.length))
+
+    val countryGenres = countryShowMap
+      //.filter(c => (c._1.country == "Turkey" || c._1.country == "United States" ||
+      //  c._1.country == "Germany" || c._1.country == "India"))
+      .mapValues(a => a.flatMap(s => s.listed_in))
+      .mapValues(a => a.groupBy(s => s))
+      .mapValues(a => a
+        .map(s => (s._1, s._2.length))
+        .toList.sortBy(l => l._2)(Ordering[Int].reverse)
+        .take(70))
+    //countryGenres.foreach(c => println(c._1.country, c._2))
+
+    val lgbtMoviePerCountry = countryGenres
+      .map(c => (c._1,c._2.filter(s => s._1 == "LGBTQ Movies")))
+    //lgbtMoviePerCountry.foreach(c => println(c._1.country, c._2))
+
+    val countryDirectors = countryShowMap
+      .mapValues(a => a.flatMap(s => s.directors))
+      .mapValues(a => a.groupBy(s => s))
+      .mapValues(a => a
+        .map(s => (s._1, s._2.length))
+        .toList.sortBy(l => l._2)(Ordering[Int].reverse)
+        .take(45))
+    //countryDirectors.foreach(c => println(c._1.country, c._2))
+
+    val countryCasts = countryShowMap
+      .mapValues(a => a.flatMap(s => s.cast))
+      .mapValues(a => a.groupBy(s => s))
+      .mapValues(a => a
+        .map(s => (s._1, s._2.length))
+        .toList.sortBy(l => l._2)(Ordering[Int].reverse)
+        .take(10))
+    //countryCasts.foreach(c => println(c._1.country, c._2))
+
+    // MAP OF COUNTRY OBJECT -> [SHOW OBJECT] FOR PRODUCING COUNTRIES
+    val producerCountryShowMap = allShows
+      .map(s => (s, s.producingCountries)).toMap
+      .mapValues(a => a.map(c => countryMap.getOrElse(c, null)))
+      .mapValues(c => c.filter(c => c != null))
+      .map(p => p._2.map(c => (c, p._1))).flatten.toArray
+      .groupBy(c => c._1)
+      .mapValues(a => a.map(s => s._2))
+
+    val producerCountryGenres = producerCountryShowMap
+      //.filter(c => (c._1.country == "Turkey" || c._1.country == "United States" ||
+      //  c._1.country == "Germany" || c._1.country == "India"))
+      .mapValues(a => a.flatMap(s => s.listed_in))
+      .mapValues(a => a.groupBy(s => s))
+      .mapValues(a => a
+        .map(s => (s._1, s._2.length))
+        .toList.sortBy(l => l._2)(Ordering[Int].reverse)
+        .take(70))
+    //producerCountryGenres.foreach(c => println(c._1.country, c._2))
+
+    val lgbtMoviePerProducerCountry = producerCountryGenres
+      .map(c => (c._1,c._2.filter(s => s._1 == "LGBTQ Movies")))
+    lgbtMoviePerProducerCountry.foreach(c => println(c._1.country, c._2))
+
+    val producerCountryDirectors = producerCountryShowMap
+      .mapValues(a => a.flatMap(s => s.directors))
+      .mapValues(a => a.groupBy(s => s))
+      .mapValues(a => a
+        .map(s => (s._1, s._2.length))
+        .toList.sortBy(l => l._2)(Ordering[Int].reverse)
+        .take(45))
+    //producerCountryDirectors.foreach(c => println(c._1.country, c._2))
+
+    val producerCountryCasts = producerCountryShowMap
+      .mapValues(a => a.flatMap(s => s.cast))
+      .mapValues(a => a.groupBy(s => s))
+      .mapValues(a => a
+        .map(s => (s._1, s._2.length))
+        .toList.sortBy(l => l._2)(Ordering[Int].reverse)
+        .take(10))
+    //producerCountryCasts.foreach(c => println(c._1.country, c._2))
+
+
+
+
   }
 
 }
