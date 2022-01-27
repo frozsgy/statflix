@@ -6,7 +6,7 @@ import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 
-object Run {
+object TitlesInUnogs {
 
   case class Country(fields: Array[String]) {
     val country: String = fields(0)
@@ -17,8 +17,8 @@ object Run {
     val title: String = fields(0)
     val showType: String = fields(1)
     val directors: Array[String] = {
-        if (fields(2) != null) {java.net.URLDecoder.decode(fields(2), "UTF-8").split(",")}
-        else {Array("")}
+      if (fields(2) != null) {java.net.URLDecoder.decode(fields(2), "UTF-8").split(",")}
+      else {Array("")}
     }
     val cast: Array[String] = {
       if (fields(3) != null) {java.net.URLDecoder.decode(fields(3), "UTF-8").split(",")}
@@ -34,8 +34,8 @@ object Run {
     val availableCountries: Array[String] = {
       if (fields(8) != "") {
         java.net.URLDecoder.decode(fields(8), "UTF-8")
-        .split(", ")
-        .map(c => c.split(": ")(1).replaceAll("\"", ""))}
+          .split(", ")
+          .map(c => c.split(": ")(1).replaceAll("\"", ""))}
       else {Array("")}
     }
   }
