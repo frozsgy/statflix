@@ -1,5 +1,9 @@
 # statflix
 
+<p align="center"> 
+<img src="https://user-images.githubusercontent.com/8549267/193447094-70b486cd-1e82-409f-ba0f-005cca17a340.png" width="35%" />
+</p>
+
 term project for ceng790 big data analysis course.
 aims to analyze user interests by country and recommend content for users.
 
